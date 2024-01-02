@@ -10,24 +10,26 @@ using namespace std;
 static void help(void);
 static size_t count_bytes(ifstream &infile);
 static void count_words(void);
-static void count_lines(void);
+static size_t count_lines(ifstream &infile);
 
 int main(int argc, char* argv[])
 {
-	bool cflag = false;
+	bool cflag = false, lflag = false;
 	string input_filename = "";
 	int c;
 
-	size_t number_of_bytes;
+	size_t number_of_bytes, number_of_lines;
 
 	ifstream input_file;
 
-	while((c = getopt(argc, argv, "c")) != -1) {
+	while((c = getopt(argc, argv, "cl")) != -1) {
 		switch(c) {
 			case 'c':
 				cflag = true;
 				break;
-
+			case 'l':
+				lflag = true;
+				break;
 			case '?':
 			case ':':
 			default:
@@ -54,6 +56,12 @@ int main(int argc, char* argv[])
 		cout << number_of_bytes << "\t";
 	}
 
+	if (lflag) {
+		number_of_lines = count_lines(input_file);
+
+		cout << number_of_lines << "\t";
+	}
+
 	cout << input_filename;
 
 	input_file.close();
@@ -66,6 +74,25 @@ static void help() {
 }
 
 static size_t count_bytes(ifstream &infile) {
+	size_t length;
 	infile.seekg(0, ios::end);
-	return infile.tellg();
+	length = infile.tellg();
+	infile.seekg(0, ios::beg);
+
+	return length;
+}
+
+static size_t count_lines(ifstream &infile) {
+	size_t lines = 0;	
+
+	int c;
+	do {
+		c = infile.get();
+
+		if (c == '\n') lines++; 
+	} while (!infile.eof());
+
+	//infile.seekg(0, ios::beg);
+
+	return lines;
 }
