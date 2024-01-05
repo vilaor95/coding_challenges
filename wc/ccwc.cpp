@@ -58,12 +58,6 @@ int main(int argc, char* argv[])
 
 	input_file.open(input_filename);	
 
-	if (cflag) {
-		number_of_bytes = count_bytes(input_file);
-
-		std::cout << number_of_bytes << "\t";
-	}
-
 	if (lflag) {
 		number_of_lines = count_lines(input_file);
 
@@ -74,6 +68,12 @@ int main(int argc, char* argv[])
 		number_of_words = count_words(input_file);
 
 		std::cout << number_of_words << "\t";
+	}
+
+	if (cflag) {
+		number_of_bytes = count_bytes(input_file);
+
+		std::cout << number_of_bytes << "\t";
 	}
 
 	if (mflag) {
@@ -96,6 +96,7 @@ static void help() {
 static size_t count_bytes(std::istream &infile) {
 	size_t bytes = 0;
 
+	infile.clear();
 	infile.seekg(0, std::ios::beg);
 	infile.seekg(0, std::ios::end);
 	bytes = infile.tellg();
