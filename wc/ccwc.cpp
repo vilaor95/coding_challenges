@@ -11,13 +11,16 @@ static size_t count_words(std::istream &infile);
 static size_t count_lines(std::istream &infile);
 static size_t count_characters(std::istream &infile);
 
-int main(int argc, char* argv[])
-{
+const std::string separator = "  ";
+
+int main(int argc, char* argv[]) {
 	bool cflag = false, lflag = false, wflag = false, mflag = false;
 	std::string input_filename = "";
 	int c;
 
 	size_t number_of_bytes, number_of_lines, number_of_words, number_of_characters;
+
+	std::istream* input = &std::cin;
 
 	std::ifstream input_file;
 
@@ -49,42 +52,36 @@ int main(int argc, char* argv[])
 		if (argc == 2) {
 			cflag = lflag = wflag = true;
 		}
+	
+		input_file.open(input_filename);	
+		input = &input_file;
 	}
-
-	if (input_filename.size() == 0)
-	{
-		help();
-	}
-
-	input_file.open(input_filename);	
 
 	if (lflag) {
-		number_of_lines = count_lines(input_file);
+		number_of_lines = count_lines(*input);
 
-		std::cout << number_of_lines << "\t";
+		std::cout << number_of_lines << separator;
 	}
 
 	if (wflag) {
-		number_of_words = count_words(input_file);
+		number_of_words = count_words(*input);
 
-		std::cout << number_of_words << "\t";
+		std::cout << number_of_words << separator;
 	}
 
 	if (cflag) {
-		number_of_bytes = count_bytes(input_file);
+		number_of_bytes = count_bytes(*input);
 
-		std::cout << number_of_bytes << "\t";
+		std::cout << number_of_bytes << separator;
 	}
 
 	if (mflag) {
-		number_of_characters = count_characters(input_file);
+		number_of_characters = count_characters(*input);
 
-		std::cout << number_of_characters << "\t";
+		std::cout << number_of_characters << separator;
 	}
 
 	std::cout << input_filename;
-
-	input_file.close();
 
 	return 0;
 }
