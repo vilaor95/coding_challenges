@@ -1,27 +1,25 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-using namespace std;
-
 #include <string>
 #include <iostream>
 #include <fstream>
 
 static void help(void);
-static size_t count_bytes(istream &infile);
-static size_t count_words(istream &infile);
-static size_t count_lines(istream &infile);
-static size_t count_characters(istream &infile);
+static size_t count_bytes(std::istream &infile);
+static size_t count_words(std::istream &infile);
+static size_t count_lines(std::istream &infile);
+static size_t count_characters(std::istream &infile);
 
 int main(int argc, char* argv[])
 {
 	bool cflag = false, lflag = false, wflag = false, mflag = false;
-	string input_filename = "";
+	std::string input_filename = "";
 	int c;
 
 	size_t number_of_bytes, number_of_lines, number_of_words, number_of_characters;
 
-	ifstream input_file;
+	std::ifstream input_file;
 
 	while((c = getopt(argc, argv, "clwm")) != -1) {
 		switch(c) {
@@ -32,8 +30,7 @@ int main(int argc, char* argv[])
 				lflag = true;
 				break;
 			case 'w':
-				wflag = true;
-				break;
+				wflag = true; break;
 			case 'm':
 				mflag = true;
 				break;
@@ -48,6 +45,10 @@ int main(int argc, char* argv[])
 	if (optind == argc-1)
 	{
 		input_filename.assign(argv[optind]);
+
+		if (argc == 2) {
+			cflag = lflag = wflag = true;
+		}
 	}
 
 	if (input_filename.size() == 0)
@@ -60,28 +61,28 @@ int main(int argc, char* argv[])
 	if (cflag) {
 		number_of_bytes = count_bytes(input_file);
 
-		cout << number_of_bytes << "\t";
+		std::cout << number_of_bytes << "\t";
 	}
 
 	if (lflag) {
 		number_of_lines = count_lines(input_file);
 
-		cout << number_of_lines << "\t";
+		std::cout << number_of_lines << "\t";
 	}
 
 	if (wflag) {
 		number_of_words = count_words(input_file);
 
-		cout << number_of_words << "\t";
+		std::cout << number_of_words << "\t";
 	}
 
 	if (mflag) {
 		number_of_characters = count_characters(input_file);
 
-		cout << number_of_characters << "\t";
+		std::cout << number_of_characters << "\t";
 	}
 
-	cout << input_filename;
+	std::cout << input_filename;
 
 	input_file.close();
 
@@ -92,37 +93,34 @@ static void help() {
 	exit(1);
 }
 
-static size_t count_bytes(istream &infile) {
+static size_t count_bytes(std::istream &infile) {
 	size_t bytes = 0;
 
-	infile.seekg(0, ios::beg);
-	infile.seekg(0, ios::end);
+	infile.seekg(0, std::ios::beg);
+	infile.seekg(0, std::ios::end);
 	bytes = infile.tellg();
 
 	return bytes;
 }
 
-static size_t count_lines(istream &infile) {
+static size_t count_lines(std::istream &infile) {
 	size_t lines = 0;	
 
-	infile.seekg(0, ios::beg);
-
-	do {
-		int c = infile.get();
-		if (c == '\n') lines++; 
-
-	} while (!infile.eof());
-
+	infile.clear();
+	infile.seekg(0, std::ios::beg);
+	std::string line;
+	while (std::getline(infile, line)) lines++;
 
 	return lines;
 }
 
-static size_t count_words(istream &infile) {
+static size_t count_words(std::istream &infile) {
 	size_t words = 0;
 
-	infile.seekg(0, ios::beg);
+	infile.clear();
+	infile.seekg(0, std::ios::beg);
 
-	string word;
+	std::string word;
 
 	while (infile >> word) {
 		words++;
@@ -131,13 +129,14 @@ static size_t count_words(istream &infile) {
 	return words;
 }
 
-static size_t count_characters(istream &infile) {
+static size_t count_characters(std::istream &infile) {
 	size_t characters = 0;
 
-	infile.seekg(0, ios::beg);
+	infile.clear();
+	infile.seekg(0, std::ios::beg);
 
 	char ch;
-	while(infile >> noskipws >> ch)
+	while(infile >> std::noskipws >> ch)
 	{
 		if ((ch & 0x80) == 0x00)
 		{
