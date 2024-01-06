@@ -15,7 +15,7 @@ const std::string separator = "  ";
 
 int main(int argc, char* argv[]) {
 	bool cflag = false, lflag = false, wflag = false, mflag = false;
-	std::string input_filename = "";
+	std::string filename = "";
 	int c;
 
 	size_t number_of_bytes, number_of_lines, number_of_words, number_of_characters;
@@ -47,13 +47,13 @@ int main(int argc, char* argv[]) {
 
 	if (optind == argc-1)
 	{
-		input_filename.assign(argv[optind]);
+		filename.assign(argv[optind]);
 
 		if (argc == 2) {
 			cflag = lflag = wflag = true;
 		}
 	
-		input_file.open(input_filename);	
+		input_file.open(filename);	
 		input = &input_file;
 	}
 
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
 		std::cout << number_of_characters << separator;
 	}
 
-	std::cout << input_filename;
+	std::cout << filename;
 
 	return 0;
 }

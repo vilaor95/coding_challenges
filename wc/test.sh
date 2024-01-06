@@ -36,4 +36,30 @@ else
 	echo "OUTPUT: '${OUTPUT}' EXPECT: '${EXPECT}'"
 fi
 
+OUTPUT=$(cat test.txt | ./ccwc -l | sed 's/^[ \t ]*//;s/[ \t ]*$//' | tr -s " ")
+EXPECT=$(cat test.txt | wc -l | sed 's/^[ \t ]*//;s/[ \t ]*$//' | tr -s " ")
+if [ "${OUTPUT}" == "${EXPECT}" ]; then
+	echo "--- Read from pipe OK"
+else
+	echo "!!! Read from pipe FAIL"
+	echo "OUTPUT: '${OUTPUT}' EXPECT: '${EXPECT}'"
+fi
+OUTPUT=$(cat test.txt | ./ccwc | sed 's/^[ \t ]*//;s/[ \t ]*$//' | tr -s " ")
+EXPECT=$(cat test.txt | wc | sed 's/^[ \t ]*//;s/[ \t ]*$//' | tr -s " ")
+if [ "${OUTPUT}" == "${EXPECT}" ]; then
+	echo "--- Read from pipe OK"
+else
+	echo "!!! Read from pipe FAIL"
+	echo "OUTPUT: '${OUTPUT}' EXPECT: '${EXPECT}'"
+fi
+
+OUTPUT=$(./ccwc < test.txt | sed 's/^[ \t ]*//;s/[ \t ]*$//' | tr -s " ")
+EXPECT=$( wc < test.txt| sed 's/^[ \t ]*//;s/[ \t ]*$//' | tr -s " ")
+if [ "${OUTPUT}" == "${EXPECT}" ]; then
+	echo "--- Read from stdin OK"
+else
+	echo "!!! Read from stdin FAIL"
+	echo "OUTPUT: '${OUTPUT}' EXPECT: '${EXPECT}'"
+fi
+
 
