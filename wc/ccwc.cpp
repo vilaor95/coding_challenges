@@ -56,6 +56,11 @@ int main(int argc, char* argv[]) {
 		input_file.open(filename);	
 		input = &input_file;
 	}
+	if (argc == 1)
+	{
+		cflag = lflag = wflag = true;
+
+	}
 
 	if (lflag) {
 		number_of_lines = count_lines(*input);
