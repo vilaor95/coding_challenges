@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 
 enum RetCode_e {
 	SUCCESS = 0,
@@ -140,6 +141,9 @@ static RetCode_e parse_object(std::vector<std::string>::iterator begin, std::vec
 			begin += 1;
 
 			ret = parse(begin, end);
+			if (ret != SUCCESS) {
+				break;
+			}
 
 			begin += 1;
 
@@ -166,6 +170,27 @@ static RetCode_e parse_object(std::vector<std::string>::iterator begin, std::vec
 	return ret;
 }
 
+static bool is_valid_number(std::string token) {
+	return !token.empty() && std::find_if(token.begin(), 
+			token.end(), [](unsigned char c) { return !std::isdigit(c);  }) == token.end();	
+}
+
+static bool is_valid(std::string token) {
+	bool valid = false;
+
+	static std::string keywords[] = {std::string("true"), std::string("false"), std::string("null")};
+
+	if ((*token.begin() == '"') && (*(token.end()-1) == '"')) valid = true;
+
+	if (is_valid_number(token)) valid = true;	
+
+	for (const auto& k : keywords) {
+		if (token == k) valid = true;
+	}
+
+	return valid;
+}
+
 static RetCode_e parse(std::vector<std::string>::iterator begin, std::vector<std::string>::iterator end) {
 	RetCode_e ret = FAILURE;
 
@@ -179,7 +204,13 @@ static RetCode_e parse(std::vector<std::string>::iterator begin, std::vector<std
 	} else if (token == "[") {
 
 	} else {
-		std::cout << token;
+		if (is_valid(token)) {
+			std::cout << token;
+			ret = SUCCESS;
+		}
+		else {
+			ret = FAILURE;
+		}
 	}
 
 	return ret;
