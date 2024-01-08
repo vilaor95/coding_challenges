@@ -66,8 +66,12 @@ static RetCode_e parse_json(std::istream &stream) {
 	std::vector<std::string>::iterator end = tokens.end();
 
 	ret = parse(&begin, &end);
-
 	std::cout << "\n";
+
+	if (begin != end) {
+		std::cout << "!!!ERROR - Extra value after close\n";
+		ret = FAILURE;
+	}
 
 	return ret;
 }
