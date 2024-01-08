@@ -112,6 +112,7 @@ static void lex(std::istream &stream, std::vector<std::string> &tokens) {
 	}
 
 	//print tokens
+	/*
 	{
 		std::string token_string;
 		std::cout << "tokens: ";
@@ -122,6 +123,7 @@ static void lex(std::istream &stream, std::vector<std::string> &tokens) {
 		token_string.erase(token_string.end()-1);
 		std::cout << token_string << "\n";
 	}
+	*/
 }
 
 static RetCode_e parse_object(std::vector<std::string>::iterator *begin, std::vector<std::string>::iterator *end) {
