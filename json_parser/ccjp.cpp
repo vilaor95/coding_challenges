@@ -3,6 +3,8 @@
 #include <vector>
 #include <algorithm>
 
+#define IDENT_LEVEL (std::string(2*ident_level, ' '))
+
 enum RetCode_e {
 	SUCCESS = 0,
 	FAILURE = 1,
@@ -13,7 +15,7 @@ static void error(void);
 
 static RetCode_e parse_json(std::istream &stream);
 static void lex(std::istream &stream, std::vector<std::string> &tokens);
-static RetCode_e parse(std::vector<std::string>::iterator begin, std::vector<std::string>::iterator end);
+static RetCode_e parse(std::vector<std::string>::iterator *begin, std::vector<std::string>::iterator *end);
 
 static int ident_level = 0;
 
@@ -59,7 +61,11 @@ static RetCode_e parse_json(std::istream &stream) {
 	std::vector<std::string> tokens;	
 
 	lex(stream, tokens);
-	ret = parse(tokens.begin(), tokens.end());
+
+	std::vector<std::string>::iterator begin = tokens.begin();
+	std::vector<std::string>::iterator end = tokens.end();
+
+	ret = parse(&begin, &end);
 
 	std::cout << "\n";
 
@@ -70,10 +76,12 @@ static void lex(std::istream &stream, std::vector<std::string> &tokens) {
 
 	char c;
 	static std::string token = "";
-	while (stream >> c) {
+	while (stream >> std::noskipws >> c) {
 		switch (c) {
 			case '{':
 			case '}':
+			case '[':
+			case ']':
 			case ':':
 			case ',':
 				if (token.size() != 0) {
@@ -83,9 +91,19 @@ static void lex(std::istream &stream, std::vector<std::string> &tokens) {
 				tokens.push_back(std::string(1, c));
 				break;
 
+			case '"':
+				token.push_back(c);
+				if (token.size() != 1) {
+					tokens.push_back(token);
+					token.clear();
+				}
+				break;
 			case ' ':
-				tokens.push_back(token);
-				token.clear();
+				if (token.size() != 0) {
+					token.push_back(c);
+				}
+				break;
+			case '\n':
 				break;
 			default:
 				token.push_back(c);
@@ -106,52 +124,47 @@ static void lex(std::istream &stream, std::vector<std::string> &tokens) {
 	}
 }
 
-static RetCode_e parse_object(std::vector<std::string>::iterator begin, std::vector<std::string>::iterator end) {
+static RetCode_e parse_object(std::vector<std::string>::iterator *begin, std::vector<std::string>::iterator *end) {
 	RetCode_e ret = FAILURE;
 
 	ident_level++;	
 
-	std::string token = *begin;
-	//std::cout << "parse_object next token " << token << "\n";
+	std::string token = **begin;
 
 	if (token == "}") {
 		ident_level--;
-
-		std::cout << std::string(ident_level, '\t');
-		
+		std::cout << IDENT_LEVEL << "}";
 		ret = SUCCESS;
 	}
 	else {
 		while (true) {
-			std::string key = *begin;
+			std::string key = **begin;
 			if (key[0] != '"') {
 				return FAILURE;
 			}
-			std::cout << std::string(ident_level, '\t') << key << " ";
+			std::cout << IDENT_LEVEL << key << " ";
 
-			begin += 1;
-
-			if (*begin != ":") {
+			(*begin)++;
+			token = **begin;
+			if (token != ":") {
 				return FAILURE;
 				break;
 			}
-			token = *begin;
 			std::cout << token << " ";
 
-			begin += 1;
+			(*begin)++;
 
 			ret = parse(begin, end);
 			if (ret != SUCCESS) {
 				break;
 			}
 
-			begin += 1;
-
-			token = *begin;
+			token = **begin;
+			(*begin)++;
 			if (token == "}") {
 				ident_level--;
 
-				std::cout << "\n" << std::string(ident_level, '\t') << token;
+				std::cout << "\n" << IDENT_LEVEL << token;
 
 				ret = SUCCESS;
 				break;
@@ -162,8 +175,39 @@ static RetCode_e parse_object(std::vector<std::string>::iterator begin, std::vec
 				break;
 			}
 			std::cout << token << "\n";
+		}
+	}
 
-			begin += 1;
+	return ret;
+}
+
+static RetCode_e parse_array(std::vector<std::string>::iterator *begin, std::vector<std::string>::iterator *end) {
+	RetCode_e ret = FAILURE;
+
+	std::string token = **begin;
+
+	if (token == "]") {
+		(*begin)++;
+		std::cout << token;
+		ret = SUCCESS;
+	}
+	else {
+		while (true) {
+			ret = parse(begin, end);
+			if (ret != SUCCESS) break;
+
+			token = **begin;
+			(*begin)++;
+			if (token == "]") {
+				std::cout << token;
+				ret = SUCCESS;
+				break;
+			}
+			if (token != ",") {
+				ret = FAILURE;
+				break;
+			}
+			std::cout << token << " ";
 		}
 	}
 
@@ -180,7 +224,7 @@ static bool is_valid(std::string token) {
 
 	static std::string keywords[] = {std::string("true"), std::string("false"), std::string("null")};
 
-	if ((*token.begin() == '"') && (*(token.end()-1) == '"')) valid = true;
+	if ((*(token.begin()) == '"') && (*(token.end()-1) == '"')) valid = true;
 
 	if (is_valid_number(token)) valid = true;	
 
@@ -191,18 +235,18 @@ static bool is_valid(std::string token) {
 	return valid;
 }
 
-static RetCode_e parse(std::vector<std::string>::iterator begin, std::vector<std::string>::iterator end) {
+static RetCode_e parse(std::vector<std::string>::iterator *begin, std::vector<std::string>::iterator *end) {
 	RetCode_e ret = FAILURE;
 
-	std::string token = *begin;
-
-	//std::cout << "parse next token: " << t << "\n";
+	std::string token = **begin;
+	(*begin)++;
 
 	if (token == "{") {
-		std::cout << std::string(ident_level, '\t') << token << "\n";
-		ret = parse_object(begin+1, end);
+		std::cout << IDENT_LEVEL << token << "\n";
+		ret = parse_object(begin, end);
 	} else if (token == "[") {
-
+		std::cout << token;
+		ret = parse_array(begin, end);
 	} else {
 		if (is_valid(token)) {
 			std::cout << token;
