@@ -13,3 +13,4 @@ $(PROGRAM): $(OBJECTS)
 .PHONY: test
 test: $(PROGRAM)
 	./test.sh
+	./test_extra.sh
