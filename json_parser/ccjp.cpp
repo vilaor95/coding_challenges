@@ -221,6 +221,8 @@ static RetCode_e parse_array(std::vector<std::string>::iterator *begin, std::vec
 }
 
 static bool is_valid_number(std::string token) {
+	if (token[0] == '0') return false;
+
 	return !token.empty() && std::find_if(token.begin(), 
 			token.end(), [](unsigned char c) { return !std::isdigit(c);  }) == token.end();	
 }
