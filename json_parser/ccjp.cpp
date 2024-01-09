@@ -112,7 +112,12 @@ static void lex(std::istream &stream, std::vector<std::string> &tokens) {
 				}
 				break;
 			case ' ':
-				if (token.size() != 0) {
+				if (token.size()!= 0 && stream.peek() == ' ') {
+					tokens.push_back(token);
+					token.clear();
+					tokens.push_back("\\t");
+					stream.get();
+				} else if (token.size() != 0) {
 					token.push_back(c);
 				}
 				break;
