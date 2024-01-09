@@ -117,6 +117,11 @@ static void lex(std::istream &stream, std::vector<std::string> &tokens) {
 				}
 				break;
 			case '\n':
+				if (token.size() != 0 && token[0] == '"') {
+					tokens.push_back(token);
+					token.clear();
+					tokens.push_back("\\n");
+				}
 				break;
 			default:
 				token.push_back(c);
