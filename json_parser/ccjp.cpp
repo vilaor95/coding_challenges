@@ -303,6 +303,8 @@ static RetCode_e parse(std::vector<std::string>::iterator *begin, std::vector<st
 		if (is_valid(token)) {
 			std::cout << token;
 			ret = SUCCESS;
+
+			if (*begin == *end) ret = FAILURE;
 		}
 		else {
 			ret = FAILURE;
