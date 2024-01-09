@@ -68,8 +68,8 @@ static RetCode_e parse_json(std::istream &stream) {
 	ret = parse(&begin, &end);
 	std::cout << "\n";
 
-	if (begin != end) {
-		std::cout << "!!!ERROR - Extra value after close\n";
+	if ((ret == SUCCESS) && (begin != end)) {
+		std::cout << "!!!ERROR - Extra value after close: "<< *begin << "\n";
 		ret = FAILURE;
 	}
 
@@ -138,6 +138,7 @@ static RetCode_e parse_object(std::vector<std::string>::iterator *begin, std::ve
 	std::string token = **begin;
 
 	if (token == "}") {
+		(*begin)++;
 		ident_level--;
 		std::cout << IDENT_LEVEL << "}";
 		ret = SUCCESS;
@@ -227,12 +228,28 @@ static bool is_valid_number(std::string token) {
 			token.end(), [](unsigned char c) { return !std::isdigit(c);  }) == token.end();	
 }
 
+static bool is_valid_string(std::string token) {
+	bool valid = false;
+
+	if ((*(token.begin()) == '"') && (*(token.end()-1) == '"')) {
+		if (!token.empty() && std::find_if(token.begin(), token.end(),
+					[](unsigned char c) {return c == '\t';}) == token.end()) {
+			valid = true;
+		}
+		else {
+			std::cout << "\n!!!ERROR - invalid string token\n";
+		}
+	}
+
+	return valid;
+}
+
 static bool is_valid(std::string token) {
 	bool valid = false;
 
 	static std::string keywords[] = {std::string("true"), std::string("false"), std::string("null")};
 
-	if ((*(token.begin()) == '"') && (*(token.end()-1) == '"')) valid = true;
+	if (is_valid_string(token)) valid = true;
 
 	if (is_valid_number(token)) valid = true;	
 
