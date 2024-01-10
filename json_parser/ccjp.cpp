@@ -5,6 +5,14 @@
 
 #define IDENT_LEVEL (std::string(2*ident_level, ' '))
 
+#define DEEP_LIMIT (20)
+#define INC_AND_CHECK_DEEP() do {			\
+		if ((++deep) >= DEEP_LIMIT)		\
+			return FAILURE;			\
+		} while(0)
+
+#define DEC_DEEP() (deep--)
+
 enum RetCode_e {
 	SUCCESS = 0,
 	FAILURE = 1,
@@ -18,6 +26,7 @@ static void lex(std::istream &stream, std::vector<std::string> &tokens);
 static RetCode_e parse(std::vector<std::string>::iterator *begin, std::vector<std::string>::iterator *end);
 
 static int ident_level = 0;
+static int deep = 0;
 
 int main(int argc, char *argv[]) {
 	RetCode_e ret = FAILURE;
@@ -133,6 +142,8 @@ static void lex(std::istream &stream, std::vector<std::string> &tokens) {
 static RetCode_e parse_object(std::vector<std::string>::iterator *begin, std::vector<std::string>::iterator *end) {
 	RetCode_e ret = FAILURE;
 
+	INC_AND_CHECK_DEEP();
+
 	ident_level++;	
 
 	std::string token = **begin;
@@ -140,6 +151,7 @@ static RetCode_e parse_object(std::vector<std::string>::iterator *begin, std::ve
 	if (token == "}") {
 		(*begin)++;
 		ident_level--;
+		DEC_DEEP();
 		std::cout << IDENT_LEVEL << "}";
 		ret = SUCCESS;
 	}
@@ -170,6 +182,7 @@ static RetCode_e parse_object(std::vector<std::string>::iterator *begin, std::ve
 			(*begin)++;
 			if (token == "}") {
 				ident_level--;
+				DEC_DEEP();
 
 				std::cout << "\n" << IDENT_LEVEL << token;
 
@@ -191,9 +204,12 @@ static RetCode_e parse_object(std::vector<std::string>::iterator *begin, std::ve
 static RetCode_e parse_array(std::vector<std::string>::iterator *begin, std::vector<std::string>::iterator *end) {
 	RetCode_e ret = FAILURE;
 
+	INC_AND_CHECK_DEEP();
+
 	std::string token = **begin;
 
 	if (token == "]") {
+		DEC_DEEP();
 		(*begin)++;
 		std::cout << token;
 		ret = SUCCESS;
@@ -206,6 +222,7 @@ static RetCode_e parse_array(std::vector<std::string>::iterator *begin, std::vec
 			token = **begin;
 			(*begin)++;
 			if (token == "]") {
+				DEC_DEEP();
 				std::cout << token;
 				ret = SUCCESS;
 				break;
