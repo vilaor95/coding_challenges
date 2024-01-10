@@ -249,10 +249,43 @@ static RetCode_e parse_array(std::vector<std::string>::iterator *begin, std::vec
 }
 
 static bool is_valid_number(std::string token) {
-	if (token[0] == '0') return false;
+	bool ret = true;
+	int decimal = 0;
+	int exponential = 0;
 
-	return !token.empty() && std::find_if(token.begin(), 
-			token.end(), [](unsigned char c) { return !std::isdigit(c);  }) == token.end();	
+	std::string::iterator begin = token.begin();
+	std::string::iterator end = token.end();
+
+	if (*begin == '-') begin++;
+
+	if (*begin == '0') {
+		if (*(begin+1) == '.') { begin+=2; decimal++; }
+		else if (token.size() == 1) ret = true; // number zero
+		else return false; // number can't have leading zero
+	}
+
+	for (auto it = begin; it != end; it++) {
+		if (*it == '.') decimal++;
+	}
+	if (decimal > 1) return false;
+
+	for (auto it = begin; it != end; it++) {
+		if (*it == 'e' || *it == 'E') exponential++;
+	}
+	if (exponential > 1) return false;
+	
+	for (auto it = begin; it != end; it++) {
+		if (!std::isdigit(*it)) {
+			if (*it == '.') continue;
+			if (*it == 'e' || *it == 'E') {
+				if ((*(it+1) == '-') || (*(it+1) == '+')) it++;
+				continue;
+			}
+			return false;
+		}
+	}
+
+	return true;
 }
 
 static bool is_valid_string(std::string token) {
