@@ -88,8 +88,15 @@ static RetCode_e parse_json(std::istream &stream) {
 static void lex(std::istream &stream, std::vector<std::string> &tokens) {
 
 	char c;
+	bool escaped = false;
+	bool parsing_value = false;
 	static std::string token = "";
 	while (stream >> std::noskipws >> c) {
+		if (escaped) {
+			token.push_back(c);
+			escaped = false;
+			continue;
+		}
 		switch (c) {
 			case '{':
 			case '}':
@@ -105,8 +112,9 @@ static void lex(std::istream &stream, std::vector<std::string> &tokens) {
 				break;
 
 			case '"':
+				parsing_value = !parsing_value;
 				token.push_back(c);
-				if (token.size() != 1) {
+				if (parsing_value == false) {
 					tokens.push_back(token);
 					token.clear();
 				}
@@ -128,6 +136,10 @@ static void lex(std::istream &stream, std::vector<std::string> &tokens) {
 					tokens.push_back("\\n");
 				}
 				break;
+			case '\\':
+				token.push_back('\\');
+				escaped = true;
+				break;
 			default:
 				token.push_back(c);
 				break;
@@ -135,7 +147,7 @@ static void lex(std::istream &stream, std::vector<std::string> &tokens) {
 	}
 
 	//print tokens
-	/*
+
 	{
 		std::string token_string;
 		std::cout << "tokens: ";
@@ -146,7 +158,7 @@ static void lex(std::istream &stream, std::vector<std::string> &tokens) {
 		token_string.erase(token_string.end()-1);
 		std::cout << token_string << "\n";
 	}
-	*/
+
 }
 
 static RetCode_e parse_object(std::vector<std::string>::iterator *begin, std::vector<std::string>::iterator *end) {
