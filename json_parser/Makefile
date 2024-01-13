@@ -1,11 +1,13 @@
+COMPILER_FLAGS = -Wall -g
+
 PROGRAM = ccjp
 
 OBJECTS = $(PROGRAM).o
 
 default: $(PROGRAM)
 
-%.o: %.c
-	g++ -g -c $< -o $@
+%.o: %.cpp
+	g++ $(COMPILER_FLAGS) -c $< -o $@
 
 $(PROGRAM): $(OBJECTS)
 	g++ $(OBJECTS) -o $@
@@ -14,3 +16,7 @@ $(PROGRAM): $(OBJECTS)
 test: $(PROGRAM)
 	./test.sh
 	./test_extra.sh
+
+.PHONY: clean
+clean:
+	- rm $(PROGRAM) $(OBJECTS)
