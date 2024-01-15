@@ -13,28 +13,28 @@
 #define __ (-1) //error code
 
 enum states_e {
-	GO,
-	OK,
-	OB,
-	AR,
-	KE,
-	CO,
-	VA,
-	ST,
+	GO = 0,
+	OK = 1,
+	OB = 2,
+	AR = 3,
+	KE = 4,
+	CO = 5,
+	VA = 6,
+	ST = 7,
 	NR_STATES
 };
 
 enum inputs_e {
-	SPACE,
-	WHITE,
-	LCURB,
-	RCURB,
-	LSQRB,
-	RSQRB,
-	COLON,
-	COMMA,
-	QUOTE,
-	ETC,
+	SPACE = 0,
+	WHITE = 1,
+	LCURB = 2,
+	RCURB = 3,
+	LSQRB = 4,
+	RSQRB = 5,
+	COLON = 6,
+	COMMA = 7,
+	QUOTE = 8,
+	ETC   = 9,
 	NR_INPUTS
 };
 
@@ -47,7 +47,7 @@ static int ascii_input[] = {
 	SPACE, ETC,   QUOTE, ETC,   ETC,   ETC,   ETC,   ETC,
 	ETC,   ETC,   ETC,   ETC,   COMMA, ETC,   ETC,   ETC,
 	ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,
-	ETC,   ETC,   ETC,   ETC,   COLON, ETC,   ETC,   ETC,
+	ETC,   ETC,   COLON, ETC,   ETC,   ETC,   ETC,   ETC,
 
 	ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,
 	ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,
@@ -63,8 +63,12 @@ static int ascii_input[] = {
 enum actions_e {
 	NO = -10, //NEW_OBJECT
 	NA = -9,  //NEW_ARRAY
-	XO = -8,  //CLOSE_OBJECT
+	XE = -8,  //CLOSE_EMPTY
 	XA = -7,  //CLOSE_ARRAY
+	XK = -6,  //CLOSE_KEY
+	FC = -5,  //FOUND_COLON
+	XO = -4,  //CLOSE_OBJECT
+	NC = -3,  //NEXT_COMMA
 };
 
 enum mode_e {
@@ -78,13 +82,13 @@ enum mode_e {
 static int transitions_table[NR_STATES][NR_INPUTS] {
 	/*      SP  WH  {   }   [   ]   :   ,   "   ETC*/
 	/*GO*/ {GO, GO, NO, __, __, __, __, __, __, __},
-	/*OK*/ {__, __, __, __, __, __, __, __, __, __},
-	/*OB*/ {__, __, __, XO, __, __, __, __, __, __},
-	/*AR*/ {__, __, __, __, __, __, __, __, __, __},
-	/*KE*/ {__, __, __, __, __, __, __, __, __, __},
-	/*CO*/ {__, __, __, __, __, __, __, __, __, __},
-	/*VA*/ {__, __, __, __, __, __, __, __, __, __},
-	/*ST*/ {__, __, __, __, __, __, __, __, __, __},
+	/*OK*/ {OK, OK, __, XO, __, __, __, NC, __, __},
+	/*OB*/ {OB, OB, __, XE, __, __, __, __, ST, __},
+	/*AR*/ {AR, AR, __, __, __, __, __, __, __, __},
+	/*KE*/ {KE, KE, __, __, __, __, __, __, ST, __},
+	/*CO*/ {CO, CO, __, __, __, __, FC, __, __, __},
+	/*VA*/ {VA, VA, OB, __, __, __, __, __, ST, __},
+	/*ST*/ {ST, __, ST, ST, ST, ST, ST, ST, XK, ST},
 };
 
 class JsonChecker {
@@ -137,15 +141,55 @@ JsonChecker::check_char(int next_char)
 			this->st.push(MODE_KEY);
 			this->state = OB;
 			break;
+
 		case NA: //NEW_ARRAY
-		case XO: //CLOSE_OBJECT
+			break;
+
+		case XE: //CLOSE_EMPTY
 			if (this->st.top() != MODE_KEY)
 				return FALSE;
 
 			this->st.pop();
 			this->state = OK;
 			break;
+		case XO: //CLOSE_OBJECT
+			if (this->st.top() != MODE_OBJECT)
+				return FALSE;
+
+			this->st.pop();
+			this->state = OK;
+			break;
+
 		case XA: //CLOSE_ARRAY
+			break;
+
+		case XK:
+			switch (this->st.top()) {
+				case MODE_KEY:
+					this->state = CO;
+					break;
+				case MODE_OBJECT:
+					this->state = OK;
+					break;
+			}
+			break;
+		
+		case FC:
+			if (this->st.top() != MODE_KEY) {
+				return FALSE;
+			}
+			this->st.pop();
+			this->st.push(MODE_OBJECT);
+			this->state = VA;
+			break;
+
+		case NC:
+			if (this->st.top() != MODE_OBJECT)
+				return FALSE;
+
+			this->st.pop(); this->st.push(MODE_KEY);
+			this->state = KE;
+			break;
 
 		case __: //INVALID
 			return FALSE;
