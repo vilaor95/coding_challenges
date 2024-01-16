@@ -142,7 +142,8 @@ class JsonChecker {
 	private:
 		unsigned int valid;
 		int state;
-		int depth;
+		unsigned int depth;
+		unsigned int max_depth;
 
 		std::stack<int> st;
 
@@ -152,11 +153,12 @@ class JsonChecker {
 		int parse_done(void);
 };
 
-JsonChecker::JsonChecker (unsigned int depth)
+JsonChecker::JsonChecker (unsigned int max_depth)
 {
 	this->valid = GOOD;
 	this->state = GO;
-	this->depth = depth;
+	this->depth = 0;
+	this->max_depth = max_depth;
 
 	this->st.push(MODE_DONE);
 }
@@ -184,6 +186,7 @@ JsonChecker::check_char(int next_char)
 			case NA: //NEW_ARRAY
 				this->st.push(MODE_ARRAY);
 				this->state = AR;
+				this->depth++;
 				break;
 
 			case XE: //CLOSE_EMPTY
@@ -193,6 +196,7 @@ JsonChecker::check_char(int next_char)
 				this->st.pop();
 				this->state = OK;
 				break;
+
 			case XO: //CLOSE_OBJECT
 				if (this->st.top() != MODE_OBJECT)
 					return FALSE;
@@ -205,6 +209,10 @@ JsonChecker::check_char(int next_char)
 				if (this->st.top() != MODE_ARRAY)
 					return FALSE;
 
+				if (this->depth >= this->max_depth)
+					return FALSE;
+
+				this->depth--;
 				this->st.pop();
 				this->state = OK;
 				break;
