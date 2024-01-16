@@ -21,6 +21,19 @@ enum states_e {
 	CO = 5,
 	VA = 6,
 	ST = 7,
+	T1 = 8, //tr
+	T2 = 9, //tru
+	T3 = 10,//true
+	F1 = 11,//fa
+	F2 = 12,//fal
+	F3 = 13,//fals
+	F4 = 14,//false
+	N1 = 15,//nu
+	N2 = 16,//nul
+	N3 = 17,//null
+	ZE = 18,//zero
+	IN = 19,//integer
+	
 	NR_STATES
 };
 
@@ -34,29 +47,47 @@ enum inputs_e {
 	COLON = 6,
 	COMMA = 7,
 	QUOTE = 8,
-	ETC   = 9,
+	LOW_A = 9,
+	LOW_B,
+	LOW_C,
+	LOW_D,
+	LOW_E,
+	LOW_F,
+	LOW_L,
+	LOW_N,
+	LOW_R,
+	LOW_S,
+	LOW_T,
+	LOW_U = 20,
+	ZERO  = 21,
+	DIGIT = 22,
+	ETC,
 	NR_INPUTS
 };
 
 static int ascii_input[] = {
+	//0
 	__,    __,    __,    __,    __,    __,    __,    __,
 	__,    WHITE, WHITE, __,    __,    WHITE, __,    __,
 	__,    __,    __,    __,    __,    __,    __,    __,
 	__,    __,    __,    __,    __,    __,    __,    __,
 
+	//32
 	SPACE, ETC,   QUOTE, ETC,   ETC,   ETC,   ETC,   ETC,
 	ETC,   ETC,   ETC,   ETC,   COMMA, ETC,   ETC,   ETC,
-	ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,
-	ETC,   ETC,   COLON, ETC,   ETC,   ETC,   ETC,   ETC,
+	ZERO,  DIGIT, DIGIT, DIGIT, DIGIT, DIGIT, DIGIT, DIGIT,
+	DIGIT, DIGIT, COLON, ETC,   ETC,   ETC,   ETC,   ETC,
 
+	//64
 	ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,
 	ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,
 	ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,
 	ETC,   ETC,   ETC,   LSQRB, ETC,   RSQRB, ETC,   ETC,
 
-	ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,
-	ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,
-	ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,   ETC,
+	//96
+	ETC,   LOW_A, LOW_B, LOW_C, LOW_D, LOW_E, LOW_F, ETC,
+	ETC,   ETC,   ETC,   ETC,   LOW_L, ETC,   LOW_N, ETC,
+	ETC,   ETC,   LOW_R, LOW_S, LOW_T, LOW_U, ETC,   ETC,
 	ETC,   ETC,   ETC,   LCURB, ETC,   RCURB, ETC,   ETC,
 };
 
@@ -80,20 +111,33 @@ enum mode_e {
 };
 
 static int transitions_table[NR_STATES][NR_INPUTS] {
-	/*      SP  WH  {   }   [   ]   :   ,   "   ETC*/
-	/*GO*/ {GO, GO, NO, __, __, __, __, __, __, __},
-	/*OK*/ {OK, OK, __, XO, __, __, __, NC, __, __},
-	/*OB*/ {OB, OB, __, XE, __, __, __, __, ST, __},
-	/*AR*/ {AR, AR, __, __, __, __, __, __, __, __},
-	/*KE*/ {KE, KE, __, __, __, __, __, __, ST, __},
-	/*CO*/ {CO, CO, __, __, __, __, FC, __, __, __},
-	/*VA*/ {VA, VA, OB, __, __, __, __, __, ST, __},
-	/*ST*/ {ST, __, ST, ST, ST, ST, ST, ST, XK, ST},
+	/*                                                                                             1-9                                        */
+	/*      SP  WH  {   }   [   ]   :   ,   "   a   b   c   d   e   f   l   n   r   s   t   u   0   |   ETC*/
+	/*GO*/ {GO, GO, NO, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __},
+	/*OK*/ {OK, OK, __, XO, __, __, __, NC, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __},
+	/*OB*/ {OB, OB, __, XE, __, __, __, __, ST, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __},
+	/*AR*/ {AR, AR, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __},
+	/*KE*/ {KE, KE, __, __, __, __, __, __, ST, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __},
+	/*CO*/ {CO, CO, __, __, __, __, FC, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __},
+	/*VA*/ {VA, VA, OB, __, __, __, __, __, ST, __, __, __, __, __, F1, __, N1, __, __, T1, __, ZE, IN, __},
+	/*ST*/ {ST, __, ST, ST, ST, ST, ST, ST, XK, ST, ST, ST, ST, ST, ST, ST, ST, ST, ST, ST, ST, ST, ST, ST},
+	/*T1*/ {__, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, T2, __, __, __, __, __, __},
+	/*T2*/ {__, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, T3, __, __, __},
+	/*T3*/ {__, __, __, __, __, __, __, __, __, __, __, __, __, OK, __, __, __, __, __, __, __, __, __, __},
+	/*F1*/ {__, __, __, __, __, __, __, __, __, F2, __, __, __, __, __, __, __, __, __, __, __, __, __, __},
+	/*F2*/ {__, __, __, __, __, __, __, __, __, __, __, __, __, __, __, F3, __, __, __, __, __, __, __, __},
+	/*F3*/ {__, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, F4, __, __, __, __, __},
+	/*F4*/ {__, __, __, __, __, __, __, __, __, __, __, __, __, OK, __, __, __, __, __, __, __, __, __, __},
+	/*N1*/ {__, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, N2, __, __, __},
+	/*N2*/ {__, __, __, __, __, __, __, __, __, __, __, __, __, __, __, N3, __, __, __, __, __, __, __, __},
+	/*N3*/ {__, __, __, __, __, __, __, __, __, __, __, __, __, __, __, OK, __, __, __, __, __, __, __, __},
+	/*ZE*/ {OK, OK, __, XO, __, __, __, NC, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __, __},
+	/*IN*/ {OK, OK, __, XO, __, __, __, NC, __, __, __, __, __, __, __, __, __, __, __, __, __, IN, IN, __},
 };
 
 class JsonChecker {
 	private:
-		int valid;
+		unsigned int valid;
 		int state;
 		int depth;
 
@@ -125,75 +169,72 @@ JsonChecker::check_char(int next_char)
 
 	int next_state = transitions_table[this->state][input_char];
 
-	switch(next_state) {
-		case GO:
-		case OK:
-		case OB:
-		case AR:
-		case KE:
-		case CO:
-		case VA:
-		case ST:
-			this->state = next_state;
-			break;
+	if (next_state >= 0) {
+		this->state = next_state;
+	} else {
+		switch(next_state) {
+			case NO: //NEW_OBJECT
+				this->st.push(MODE_KEY);
+				this->state = OB;
+				break;
 
-		case NO: //NEW_OBJECT
-			this->st.push(MODE_KEY);
-			this->state = OB;
-			break;
+			case NA: //NEW_ARRAY
+				break;
 
-		case NA: //NEW_ARRAY
-			break;
+			case XE: //CLOSE_EMPTY
+				if (this->st.top() != MODE_KEY)
+					return FALSE;
 
-		case XE: //CLOSE_EMPTY
-			if (this->st.top() != MODE_KEY)
+				this->st.pop();
+				this->state = OK;
+				break;
+			case XO: //CLOSE_OBJECT
+				if (this->st.top() != MODE_OBJECT)
+					return FALSE;
+
+				this->st.pop();
+				this->state = OK;
+				break;
+
+			case XA: //CLOSE_ARRAY
+				break;
+
+			case XK:
+				switch (this->st.top()) {
+					case MODE_KEY:
+						this->state = CO;
+						break;
+					case MODE_OBJECT:
+						this->state = OK;
+						break;
+				}
+				break;
+			
+			case FC:
+				if (this->st.top() != MODE_KEY) {
+					return FALSE;
+				}
+				this->st.pop();
+				this->st.push(MODE_OBJECT);
+				this->state = VA;
+				break;
+
+			case NC:
+				switch (this->st.top()) {
+					case MODE_OBJECT:
+						this->st.pop(); this->st.push(MODE_KEY);
+						this->state = KE;
+						break;
+					default:
+						return FALSE;
+						break;
+				}
+				break;
+
+			case __: //INVALID
 				return FALSE;
-
-			this->st.pop();
-			this->state = OK;
-			break;
-		case XO: //CLOSE_OBJECT
-			if (this->st.top() != MODE_OBJECT)
-				return FALSE;
-
-			this->st.pop();
-			this->state = OK;
-			break;
-
-		case XA: //CLOSE_ARRAY
-			break;
-
-		case XK:
-			switch (this->st.top()) {
-				case MODE_KEY:
-					this->state = CO;
-					break;
-				case MODE_OBJECT:
-					this->state = OK;
-					break;
-			}
-			break;
-		
-		case FC:
-			if (this->st.top() != MODE_KEY) {
-				return FALSE;
-			}
-			this->st.pop();
-			this->st.push(MODE_OBJECT);
-			this->state = VA;
-			break;
-
-		case NC:
-			if (this->st.top() != MODE_OBJECT)
-				return FALSE;
-
-			this->st.pop(); this->st.push(MODE_KEY);
-			this->state = KE;
-			break;
-
-		case __: //INVALID
-			return FALSE;
-			break;
+				break;
+		}
 	}
 
 	return TRUE;
